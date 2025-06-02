@@ -1,4 +1,4 @@
-# 🎬 AI Video Summarization System
+# AI Video Summarization System
 ## Deep Reinforcement Learning for Unsupervised Video Summarization
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
@@ -6,107 +6,105 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.25+-brightgreen.svg)](https://streamlit.io/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Hệ thống tóm tắt video thông minh sử dụng Deep Reinforcement Learning với giao diện web hiện đại**
+> **An intelligent video summarization system utilizing Deep Reinforcement Learning with modern web interface**
 
-Dự án này triển khai thuật toán Deep Reinforcement Learning cho bài toán tóm tắt video không giám sát, dựa trên nghiên cứu AAAI'18: [Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward](https://arxiv.org/abs/1801.00054).
+This project implements a Deep Reinforcement Learning algorithm for unsupervised video summarization, based on the AAAI'18 research: [Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward](https://arxiv.org/abs/1801.00054).
 
 <div align="center">
   <img src="imgs/pipeline.jpg" alt="AI Video Summarization Pipeline" width="80%">
 </div>
 
-## 🎯 Tính năng chính
+## Key Features
 
-- **🤖 AI-Powered**: Sử dụng Deep Reinforcement Learning với DR-DSN architecture
-- **🎨 Giao diện hiện đại**: Web app với Streamlit, thiết kế dark theme responsive
-- **📊 Phân tích trực quan**: Biểu đồ tương tác với Plotly cho frame analysis
-- **🎬 Đa định dạng**: Hỗ trợ MP4, AVI, MOV, MKV, MPEG4
-- **⚡ Tối ưu hiệu suất**: GPU acceleration với CUDA support
-- **📈 Nhiều mô hình**: 6 kiến trúc mô hình khác nhau (DR-DSN, D-DSN, etc.)
-- **🎯 Flexible Output**: Tùy chỉnh tỷ lệ tóm tắt và FPS output
+- **AI-Powered Processing**: Utilizes Deep Reinforcement Learning with DR-DSN architecture
+- **Modern Web Interface**: Streamlit-based application with responsive dark theme design
+- **Interactive Visualization**: Real-time frame analysis with Plotly charts
+- **Multi-format Support**: Compatible with MP4, AVI, MOV, MKV, MPEG4 formats
+- **Performance Optimization**: GPU acceleration with CUDA support
+- **Multiple Model Architectures**: Six different model variants (DR-DSN, D-DSN, etc.)
+- **Flexible Configuration**: Customizable summary ratio and output FPS settings
 
-## 🏗️ Kiến trúc hệ thống
+## System Architecture
 
-### 1. **Core Components**
+### Core Components
 
 ```
-📁 AI Video Summarization System
-├── 🧠 Deep Learning Core
+AI Video Summarization System
+├── Deep Learning Core
 │   ├── models.py          # DR-DSN, D-DSN, DSNsup architectures
-│   ├── rewards.py         # Diversity-Representativeness reward
-│   └── vsum_tools.py      # Knapsack optimization
-├── 🎬 Video Processing
-│   ├── extract_frames.py  # Frame extraction với OpenCV
+│   ├── rewards.py         # Diversity-Representativeness reward functions
+│   └── vsum_tools.py      # Knapsack optimization algorithms
+├── Video Processing
+│   ├── extract_frames.py  # Frame extraction using OpenCV
 │   ├── video_utils.py     # Video processing utilities
-│   └── temporal_diversity.py # Temporal analysis
-├── 🌐 Web Interface
-│   ├── streamlit_app.py   # Modern web UI
-│   └── CSS styling       # Dark theme + responsive design
-└── 📊 Visualization
-    ├── Plotly charts     # Interactive frame analysis
+│   └── temporal_diversity.py # Temporal analysis components
+├── Web Interface
+│   ├── streamlit_app.py   # Modern web UI implementation
+│   └── CSS styling       # Dark theme and responsive design
+└── Visualization
+    ├── Plotly charts     # Interactive frame analysis charts
     └── Dashboard        # Real-time processing monitoring
 ```
 
-### 2. **Model Architectures**
+### Model Architectures
 
-| Model | Description | Use Case |
-|-------|-------------|----------|
-| **DR-DSN** | Diversity-Representativeness DSN | Cân bằng đa dạng và đại diện |
-| **DR-DSNsup** | Supervised DR-DSN | Training với ground truth |
-| **D-DSN** | Deterministic DSN | Ổn định, reproducible |
-| **D-DSN-nolambda** | DSN không regularization | High flexibility |
-| **DSNsup** | Supervised DSN | Supervised learning |
-| **R-DSN** | Randomized DSN | Exploration-focused |
+| Model | Description | Primary Use Case |
+|-------|-------------|-----------------|
+| **DR-DSN** | Diversity-Representativeness DSN | Balanced diversity and representativeness |
+| **DR-DSNsup** | Supervised DR-DSN | Training with ground truth supervision |
+| **D-DSN** | Deterministic DSN | Stable and reproducible results |
+| **D-DSN-nolambda** | DSN without regularization | High flexibility scenarios |
+| **DSNsup** | Supervised DSN | Supervised learning approach |
+| **R-DSN** | Randomized DSN | Exploration-focused processing |
 
-### 3. **Technical Workflow**
+### Technical Workflow
 
-```mermaid
-graph LR
-    A[📹 Input Video] --> B[🎞️ Frame Extraction]
-    B --> C[🔍 Feature Extraction]
-    C --> D[🧠 DR-DSN Model]
-    D --> E[📊 Importance Scoring]
-    E --> F[🎯 Knapsack Selection]
-    F --> G[🎬 Summary Generation]
-    G --> H[📱 Web Interface]
-```
+The system follows a sequential processing pipeline:
 
-## 💻 Yêu cầu hệ thống
+1. **Input Video Processing**: Frame extraction and preprocessing
+2. **Feature Extraction**: GoogLeNet pool5 feature computation
+3. **Model Inference**: DR-DSN importance scoring
+4. **Frame Selection**: Knapsack optimization for optimal subset
+5. **Summary Generation**: Video compilation and format conversion
+6. **Web Interface**: Interactive visualization and download
 
-### **Hardware Requirements**
-- **CPU**: Intel i5+ hoặc AMD Ryzen 5+ (khuyến nghị)
-- **RAM**: 8GB+ (16GB khuyến nghị cho video lớn)
-- **GPU**: NVIDIA GTX 1060+ với CUDA (tùy chọn, tăng tốc 5-10x)
-- **Storage**: 5GB+ free space
+## System Requirements
 
-### **Software Requirements**
-- **OS**: Windows 10+, macOS 10.14+, Ubuntu 18.04+
-- **Python**: 3.8 - 3.11
-- **FFmpeg**: Latest version (cho video conversion)
+### Hardware Requirements
+- **CPU**: Intel i5+ or AMD Ryzen 5+ (recommended)
+- **RAM**: 8GB minimum (16GB recommended for large videos)
+- **GPU**: NVIDIA GTX 1060+ with CUDA support (optional, provides 5-10x speedup)
+- **Storage**: 5GB+ available space
 
-## 🚀 Cài đặt và sử dụng
+### Software Requirements
+- **Operating System**: Windows 10+, macOS 10.14+, Ubuntu 18.04+
+- **Python**: Version 3.8 - 3.11
+- **FFmpeg**: Latest version for video conversion
 
-### **Quick Start (Khuyến nghị)**
+## Installation and Setup
+
+### **Quick Start (Recommended)**
 
 ```bash
 # 1. Clone repository
 git clone https://github.com/your-repo/AI-Video-Summarization
 cd AI-Video-Summarization
 
-# 2. Tạo virtual environment
+# 2. Create virtual environment
 python -m venv venv
 # Windows
 venv\Scripts\activate
 # macOS/Linux
 source venv/bin/activate
 
-# 3. Cài đặt dependencies
+# 3. Install dependencies
 pip install -r requirements.txt
 
 # 4. Download pre-trained models
-# Link Google Drive: https://drive.google.com/drive/folders/model_checkpoints
-# Giải nén vào thư mục log/
+# Google Drive Link: https://drive.google.com/drive/folders/model_checkpoints
+# Extract to log/ directory
 
-# 5. Chạy web application
+# 5. Launch web application
 streamlit run streamlit_app.py
 ```
 
@@ -114,13 +112,13 @@ streamlit run streamlit_app.py
 
 #### **Step 1: Environment Setup**
 ```bash
-# Kiểm tra Python version
-python --version  # Phải >= 3.8
+# Check Python version
+python --version  # Must be >= 3.8
 
-# Cài đặt pip updates
+# Update pip
 python -m pip install --upgrade pip
 
-# Tạo isolated environment
+# Create isolated environment
 python -m venv ai_video_env
 ai_video_env\Scripts\activate  # Windows
 source ai_video_env/bin/activate  # macOS/Linux
@@ -156,39 +154,39 @@ ffmpeg -version
 
 #### **Step 4: Model Downloads**
 ```bash
-# Download datasets và pre-trained models
+# Download datasets and pre-trained models
 # Option 1: Google Drive (173.5MB)
-# Download từ: https://drive.google.com/open?id=1Bf0beMN_ieiM3JpprghaoOwQe9QJIyAN
+# Download from: https://drive.google.com/open?id=1Bf0beMN_ieiM3JpprghaoOwQe9QJIyAN
 
 # Option 2: Manual setup
 mkdir -p datasets log
-# Copy các file .h5 vào datasets/
-# Copy model checkpoints vào log/
+# Copy .h5 files to datasets/
+# Copy model checkpoints to log/
 ```
 
-## 🎮 Sử dụng hệ thống
+## Usage Guide
 
-### **1. Web Interface (Khuyến nghị)**
+### **1. Web Interface (Recommended)**
 
 ```bash
-# Khởi động web application
+# Launch web application
 streamlit run streamlit_app.py
 
-# Mở browser và truy cập: http://localhost:8501
+# Open browser and navigate to: http://localhost:8501
 ```
 
-**Giao diện bao gồm:**
-- **📁 Upload Section**: Drag & drop video files
-- **🤖 Model Configuration**: Chọn architecture và dataset
-- **⚙️ Output Settings**: FPS, summary length
-- **📊 Real-time Analysis**: Frame importance visualization
-- **📥 Download Results**: Summary video trong format web-compatible
+**Interface Components:**
+- **Upload Section**: Drag & drop video files
+- **Model Configuration**: Select architecture and dataset
+- **Output Settings**: Configure FPS and summary length
+- **Real-time Analysis**: Frame importance visualization
+- **Download Results**: Summary video in web-compatible format
 
 ### **2. Command Line Interface**
 
 #### **Training Models**
 ```bash
-# Train DR-DSN trên SumMe dataset
+# Train DR-DSN on SumMe dataset
 python main.py \
     -d datasets/eccv16_dataset_summe_google_pool5.h5 \
     -s datasets/summe_splits.json \
@@ -198,7 +196,7 @@ python main.py \
     --split-id 0 \
     --verbose
 
-# Train với custom parameters
+# Train with custom parameters
 python main.py \
     -d datasets/eccv16_dataset_tvsum_google_pool5.h5 \
     -s datasets/tvsum_splits.json \
@@ -213,7 +211,7 @@ python main.py \
     --gpu 0
 ```
 
-#### **Testing và Evaluation**
+#### **Testing and Evaluation**
 ```bash
 # Test model performance
 python main.py \
@@ -226,7 +224,7 @@ python main.py \
     --resume log/summe-split0/model_epoch_60.pth.tar \
     --save-results
 
-# Visualize kết quả
+# Visualize results
 python visualize_results.py -p log/summe-split0/result.h5
 ```
 
@@ -247,9 +245,9 @@ python batch_process.py \
     --dataset summe
 ```
 
-## 📊 Performance và Benchmarks
+## Performance and Benchmarks
 
-### **Model Performance trên Standard Datasets**
+### **Model Performance on Standard Datasets**
 
 | Model | SumMe F-Score | TVSum F-Score | Processing Speed |
 |-------|---------------|---------------|------------------|
@@ -274,7 +272,7 @@ python batch_process.py \
 | **FPS** | 15 - 60 FPS | 24 - 30 FPS |
 | **Formats** | MP4, AVI, MOV, MKV | MP4 (H.264) |
 
-## 🛠️ Advanced Configuration
+## Advanced Configuration
 
 ### **Model Hyperparameters**
 ```python
@@ -299,7 +297,7 @@ SUMMARY_CONFIG = {
 
 ### **Custom Dataset Integration**
 ```python
-# Tạo custom dataset format
+# Create custom dataset format
 import h5py
 import numpy as np
 
@@ -324,30 +322,30 @@ def create_custom_dataset(video_features, video_names, output_path):
             grp['user_summary'] = np.zeros((1, T))
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### **Common Issues**
 
 #### **1. CUDA Out of Memory**
 ```bash
-# Giải pháp 1: Giảm batch size
+# Solution 1: Reduce batch size
 export CUDA_VISIBLE_DEVICES=0
 python main.py --batch-size 1
 
-# Giải pháp 2: Sử dụng CPU
+# Solution 2: Use CPU
 python main.py --gpu -1
 
-# Giải pháp 3: Mixed precision
+# Solution 3: Mixed precision
 pip install apex
 python main.py --fp16
 ```
 
 #### **2. FFmpeg Not Found**
 ```bash
-# Windows: Thêm FFmpeg vào PATH
+# Windows: Add FFmpeg to PATH
 set PATH=%PATH%;C:\ffmpeg\bin
 
-# macOS: Reinstall với homebrew
+# macOS: Reinstall with homebrew
 brew uninstall ffmpeg && brew install ffmpeg
 
 # Linux: Update package manager
@@ -383,11 +381,11 @@ gatherUsageStats = false
 " > ~/.streamlit/config.toml
 ```
 
-## 📈 Development và Customization
+## Development and Customization
 
 ### **Adding New Models**
 ```python
-# models.py - Thêm custom architecture
+# models.py - Add custom architecture
 class CustomDSN(nn.Module):
     def __init__(self, input_dim, hidden_dim, num_layers=2):
         super(CustomDSN, self).__init__()
@@ -429,7 +427,7 @@ def custom_reward_function(machine_summary, features):
 ```python
 # streamlit_app.py - Add new features
 def add_advanced_settings():
-    st.sidebar.markdown("### 🔬 Advanced Settings")
+    st.sidebar.markdown("### Advanced Settings")
     
     # Custom reward weights
     rep_weight = st.sidebar.slider("Representativeness Weight", 0.0, 1.0, 0.8)
@@ -450,20 +448,20 @@ def add_advanced_settings():
     }
 ```
 
-## 📚 Research và References
+## Research and References
 
 ### **Core Algorithm**
-Hệ thống dựa trên nghiên cứu:
+The system is based on the research:
 - **Paper**: "Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward"
 - **Authors**: Kaiyang Zhou, Yu Qiao, Tao Xiang
 - **Conference**: AAAI 2018
 - **arXiv**: [1801.00054](https://arxiv.org/abs/1801.00054)
 
 ### **Key Innovations**
-1. **Diversity-Representativeness Reward**: Cân bằng giữa đa dạng nội dung và tính đại diện
-2. **Unsupervised Learning**: Không cần ground truth annotations
-3. **Attention Mechanism**: Tự động học importance weights
-4. **Knapsack Optimization**: Optimal frame selection với constraints
+1. **Diversity-Representativeness Reward**: Balances content diversity and representativeness
+2. **Unsupervised Learning**: No ground truth annotations required
+3. **Attention Mechanism**: Automatically learns importance weights
+4. **Knapsack Optimization**: Optimal frame selection with constraints
 
 ### **Related Works**
 - SumMe Dataset: [Gygli et al., ECCV 2014]
@@ -471,7 +469,7 @@ Hệ thống dựa trên nghiên cứu:
 - Attention-based Summarization: [Zhang et al., AAAI 2016]
 - Adversarial Learning: [Mahasseni et al., CVPR 2017]
 
-## 🤝 Contributing
+## Contributing
 
 ### **Development Setup**
 ```bash
@@ -494,16 +492,16 @@ pre-commit install
 
 ### **Code Style**
 - **Python**: PEP 8 with Black formatter
-- **Comments**: Tiếng Việt cho business logic, English cho technical details
-- **Documentation**: Docstrings theo Google style
+- **Comments**: Clear and concise documentation
+- **Documentation**: Docstrings following Google style
 
 ### **Contribution Guidelines**
-1. **Issues**: Mô tả rõ ràng vấn đề với steps to reproduce
-2. **Pull Requests**: Include tests và documentation updates  
-3. **Features**: Discuss in issues trước khi implement
+1. **Issues**: Clearly describe problems with reproduction steps
+2. **Pull Requests**: Include tests and documentation updates  
+3. **Features**: Discuss in issues before implementation
 4. **Bug Fixes**: Include regression tests
 
-## 📄 License và Credits
+## License and Credits
 
 ### **License**
 ```
@@ -524,9 +522,9 @@ copies or substantial portions of the Software.
 
 ### **Acknowledgments**
 - **Original Research**: [KaiyangZhou/pytorch-vsumm-reinforce](https://github.com/KaiyangZhou/pytorch-vsumm-reinforce)
-- **Datasets**: SumMe và TVSum datasets
+- **Datasets**: SumMe and TVSum datasets
 - **Libraries**: PyTorch, Streamlit, OpenCV, Plotly
-- **Community**: Contributors và beta testers
+- **Community**: Contributors and beta testers
 
 ### **Citation**
 ```bibtex
@@ -547,11 +545,11 @@ copies or substantial portions of the Software.
 
 ---
 
-## 📞 Support và Contact
+## Support and Contact
 
-- **🐛 Bug Reports**: [GitHub Issues](https://github.com/your-repo/issues)
-- **💡 Feature Requests**: [GitHub Discussions](https://github.com/your-repo/discussions)
-- **📧 Email**: your-email@university.edu
-- **📚 Documentation**: [Wiki Pages](https://github.com/your-repo/wiki)
+- **Bug Reports**: [GitHub Issues](https://github.com/your-repo/issues)
+- **Feature Requests**: [GitHub Discussions](https://github.com/your-repo/discussions)
+- **Email**: your-email@university.edu
+- **Documentation**: [Wiki Pages](https://github.com/your-repo/wiki)
 
-**Made with ❤️ by AI Research Team**
+**Made with passion by AI Research Team**
