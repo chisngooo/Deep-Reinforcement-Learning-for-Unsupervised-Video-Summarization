@@ -1,555 +1,255 @@
-# AI Video Summarization System
-## Deep Reinforcement Learning for Unsupervised Video Summarization
+# Deep Reinforcement Learning for Unsupervised Video Summarization
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-1.8+-red.svg)](https://pytorch.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.25+-brightgreen.svg)](https://streamlit.io/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+An advanced video summarization system powered by Deep Reinforcement Learning with Diversity-Representativeness reward mechanism. This implementation is based on the AAAI'18 research paper: "Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward".
 
-> **An intelligent video summarization system utilizing Deep Reinforcement Learning with modern web interface**
+## Table of Contents
 
-This project implements a Deep Reinforcement Learning algorithm for unsupervised video summarization, based on the AAAI'18 research: [Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward](https://arxiv.org/abs/1801.00054).
+- [Overview](#overview)
+- [Trained Models](#trained-models)
+- [System Requirements](#system-requirements)
+- [Installation and Setup](#installation-and-setup)
+- [Dataset Configuration](#dataset-configuration)
+- [Model Training](#model-training)
+- [Web Application](#web-application)
+- [Project Structure](#project-structure)
+- [Citation](#citation)
 
-<div align="center">
-  <img src="imgs/pipeline.jpg" alt="AI Video Summarization Pipeline" width="80%">
-</div>
+## Overview
 
-## Key Features
+This project implements a deep reinforcement learning approach for unsupervised video summarization. The system selects the most important frames from input videos to create concise summaries while maintaining both diversity and representativeness of the original content.
 
-- **AI-Powered Processing**: Utilizes Deep Reinforcement Learning with DR-DSN architecture
-- **Modern Web Interface**: Streamlit-based application with responsive dark theme design
-- **Interactive Visualization**: Real-time frame analysis with Plotly charts
-- **Multi-format Support**: Compatible with MP4, AVI, MOV, MKV, MPEG4 formats
-- **Performance Optimization**: GPU acceleration with CUDA support
-- **Multiple Model Architectures**: Six different model variants (DR-DSN, D-DSN, etc.)
-- **Flexible Configuration**: Customizable summary ratio and output FPS settings
+## Trained Models
 
-## System Architecture
+This repository contains 60 pre-trained models across different architectures and datasets:
 
-### Core Components
+### Model Architectures (6 types)
+- **DR-DSN**: Diversity-Representativeness Deep Summarization Network (Unsupervised)
+- **D-DSN**: Diversity Deep Summarization Network (Unsupervised)
+- **D-DSN-nolambda**: Diversity DSN without lambda regularization (Unsupervised)
+- **R-DSN**: Representativeness Deep Summarization Network (Unsupervised)
+- **DR-DSNsup**: Diversity-Representativeness DSN (Supervised)
+- **DSNsup**: Deep Summarization Network (Supervised)
 
-```
-AI Video Summarization System
-├── Deep Learning Core
-│   ├── models.py          # DR-DSN, D-DSN, DSNsup architectures
-│   ├── rewards.py         # Diversity-Representativeness reward functions
-│   └── vsum_tools.py      # Knapsack optimization algorithms
-├── Video Processing
-│   ├── extract_frames.py  # Frame extraction using OpenCV
-│   ├── video_utils.py     # Video processing utilities
-│   └── temporal_diversity.py # Temporal analysis components
-├── Web Interface
-│   ├── streamlit_app.py   # Modern web UI implementation
-│   └── CSS styling       # Dark theme and responsive design
-└── Visualization
-    ├── Plotly charts     # Interactive frame analysis charts
-    └── Dashboard        # Real-time processing monitoring
-```
+### Training Configuration
+- **Datasets**: 2 datasets (SumMe, TVSum)
+- **Cross-validation**: 5-fold cross-validation for each dataset
+- **Total models**: 60 trained instances (6 architectures × 2 datasets × 5 splits)
 
-### Model Architectures
-
-| Model | Description | Primary Use Case |
-|-------|-------------|-----------------|
-| **DR-DSN** | Diversity-Representativeness DSN | Balanced diversity and representativeness |
-| **DR-DSNsup** | Supervised DR-DSN | Training with ground truth supervision |
-| **D-DSN** | Deterministic DSN | Stable and reproducible results |
-| **D-DSN-nolambda** | DSN without regularization | High flexibility scenarios |
-| **DSNsup** | Supervised DSN | Supervised learning approach |
-| **R-DSN** | Randomized DSN | Exploration-focused processing |
-
-### Technical Workflow
-
-The system follows a sequential processing pipeline:
-
-1. **Input Video Processing**: Frame extraction and preprocessing
-2. **Feature Extraction**: GoogLeNet pool5 feature computation
-3. **Model Inference**: DR-DSN importance scoring
-4. **Frame Selection**: Knapsack optimization for optimal subset
-5. **Summary Generation**: Video compilation and format conversion
-6. **Web Interface**: Interactive visualization and download
+### Model Performance Summary
+Each model architecture was evaluated using 5-fold cross-validation on both SumMe and TVSum datasets to ensure robust performance metrics and generalization capabilities.
 
 ## System Requirements
 
-### Hardware Requirements
-- **CPU**: Intel i5+ or AMD Ryzen 5+ (recommended)
-- **RAM**: 8GB minimum (16GB recommended for large videos)
-- **GPU**: NVIDIA GTX 1060+ with CUDA support (optional, provides 5-10x speedup)
-- **Storage**: 5GB+ available space
-
-### Software Requirements
-- **Operating System**: Windows 10+, macOS 10.14+, Ubuntu 18.04+
-- **Python**: Version 3.8 - 3.11
-- **FFmpeg**: Latest version for video conversion
+- Python 3.8 or higher
+- PyTorch 1.8 or higher
+- CUDA 10.2+ (optional, for GPU acceleration)
+- FFmpeg (latest version)
+- Minimum 8GB RAM
+- 5GB available storage space
 
 ## Installation and Setup
 
-### **Quick Start (Recommended)**
+### 1. Clone Repository and Create Directories
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/your-repo/AI-Video-Summarization
-cd AI-Video-Summarization
-
-# 2. Create virtual environment
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Download pre-trained models
-# Google Drive Link: https://drive.google.com/drive/folders/model_checkpoints
-# Extract to log/ directory
-
-# 5. Launch web application
-streamlit run streamlit_app.py
-```
-
-### **Detailed Installation**
-
-#### **Step 1: Environment Setup**
-```bash
-# Check Python version
-python --version  # Must be >= 3.8
-
-# Update pip
-python -m pip install --upgrade pip
-
-# Create isolated environment
-python -m venv ai_video_env
-ai_video_env\Scripts\activate  # Windows
-source ai_video_env/bin/activate  # macOS/Linux
-```
-
-#### **Step 2: Dependencies Installation**
-```bash
-# Core dependencies
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install streamlit plotly opencv-python h5py numpy scipy
-
-# Additional utilities
-pip install tabulate tqdm ffmpeg-python Pillow
-
-# Development tools (optional)
-pip install jupyter notebook matplotlib seaborn
-```
-
-#### **Step 3: FFmpeg Setup**
-```bash
-# Windows (using chocolatey)
-choco install ffmpeg
-
-# macOS (using homebrew)
-brew install ffmpeg
-
-# Ubuntu/Debian
-sudo apt update && sudo apt install ffmpeg
-
-# Verify installation
-ffmpeg -version
-```
-
-#### **Step 4: Model Downloads**
-```bash
-# Download datasets and pre-trained models
-# Option 1: Google Drive (173.5MB)
-# Download from: https://drive.google.com/open?id=1Bf0beMN_ieiM3JpprghaoOwQe9QJIyAN
-
-# Option 2: Manual setup
+git clone <repository-url>
+cd Deep-Reinforcement-Learning-for-Unsupervised-Video-Summarization
 mkdir -p datasets log
-# Copy .h5 files to datasets/
-# Copy model checkpoints to log/
 ```
 
-## Usage Guide
+### 2. Download Datasets
 
-### **1. Web Interface (Recommended)**
+Download the required datasets (173.5MB total) from Google Drive:
+https://drive.google.com/open?id=1Bf0beMN_ieiM3JpprghaoOwQe9QJIyAN
+
+Extract and place the following files in the `datasets/` directory:
+- `eccv16_dataset_summe_google_pool5.h5` - SumMe dataset with GoogLeNet features
+- `eccv16_dataset_tvsum_google_pool5.h5` - TVSum dataset with GoogLeNet features
+- `eccv16_dataset_ovp_google_pool5.h5` - OVP dataset (optional)
+- `eccv16_dataset_youtube_google_pool5.h5` - YouTube dataset (optional)
+
+### 3. Install Dependencies
 
 ```bash
-# Launch web application
-streamlit run streamlit_app.py
-
-# Open browser and navigate to: http://localhost:8501
+pip install -r requirements.txt
 ```
 
-**Interface Components:**
-- **Upload Section**: Drag & drop video files
-- **Model Configuration**: Select architecture and dataset
-- **Output Settings**: Configure FPS and summary length
-- **Real-time Analysis**: Frame importance visualization
-- **Download Results**: Summary video in web-compatible format
-
-### **2. Command Line Interface**
-
-#### **Training Models**
+Verify PyTorch installation with CUDA support (optional):
 ```bash
-# Train DR-DSN on SumMe dataset
+python -c "import torch; print(f'PyTorch: {torch.__version__}, CUDA: {torch.cuda.is_available()}')"
+```
+
+## Dataset Configuration
+
+### Automatic Split Generation
+
+Generate 5-fold cross-validation splits for training:
+
+```bash
+# Generate splits for SumMe dataset
+python create_split.py -d datasets/eccv16_dataset_summe_google_pool5.h5 --save-path datasets/summe_splits.json
+
+# Generate splits for TVSum dataset  
+python create_split.py -d datasets/eccv16_dataset_tvsum_google_pool5.h5 --save-path datasets/tvsum_splits.json
+```
+
+### Pre-configured Splits
+
+The repository includes pre-generated split configurations:
+- `datasets/summe_splits.json` - 5-fold cross-validation splits for SumMe
+- `datasets/tvsum_splits.json` - 5-fold cross-validation splits for TVSum
+
+## Model Training
+
+### Manual Training Examples
+
+#### Training DR-DSN on SumMe Dataset
+
+```bash
 python main.py \
     -d datasets/eccv16_dataset_summe_google_pool5.h5 \
     -s datasets/summe_splits.json \
     -m summe \
     --gpu 0 \
-    --save-dir log/summe-split0 \
+    --save-dir log/DR-DSN-summe-split0 \
     --split-id 0 \
     --verbose
+```
 
-# Train with custom parameters
+#### Training DR-DSN on TVSum Dataset
+
+```bash
 python main.py \
     -d datasets/eccv16_dataset_tvsum_google_pool5.h5 \
     -s datasets/tvsum_splits.json \
     -m tvsum \
-    --lr 1e-05 \
-    --weight-decay 1e-05 \
-    --max-epoch 60 \
-    --stepsize 30 \
-    --gamma 0.1 \
-    --num-episode 5 \
-    --beta 0.01 \
-    --gpu 0
-```
-
-#### **Testing and Evaluation**
-```bash
-# Test model performance
-python main.py \
-    -d datasets/eccv16_dataset_summe_google_pool5.h5 \
-    -s datasets/summe_splits.json \
-    -m summe \
     --gpu 0 \
+    --save-dir log/DR-DSN-tvsum-split0 \
     --split-id 0 \
-    --evaluate \
-    --resume log/summe-split0/model_epoch_60.pth.tar \
-    --save-results
-
-# Visualize results
-python visualize_results.py -p log/summe-split0/result.h5
+    --verbose
 ```
 
-#### **Custom Video Processing**
+#### Key Training Parameters
+
+- `--lr 1e-05` - Learning rate (default)
+- `--weight-decay 1e-05` - L2 regularization weight (default)
+- `--max-epoch 60` - Maximum training epochs (default)
+- `--beta 0.01` - Diversity reward weight (default)
+- `--gpu 0` - GPU device ID (-1 for CPU)
+
+### Automated Training Pipelines
+
+#### Complete Unsupervised Training
+
 ```bash
-# Process single video
-python summarize_mp4.py \
-    --input video/sample.mp4 \
-    --model log/DR-DSN-summe-split0/model_epoch_60.pth.tar \
-    --output summary.mp4 \
-    --fps 30
-
-# Batch processing
-python batch_process.py \
-    --input-dir video/ \
-    --output-dir summaries/ \
-    --model-type DR-DSN \
-    --dataset summe
+bash run_experiments.sh
 ```
 
-## Performance and Benchmarks
+This script trains all unsupervised models:
+- DR-DSN on SumMe and TVSum (5 splits each = 10 models)
+- D-DSN on SumMe and TVSum (5 splits each = 10 models)
+- D-DSN-nolambda on SumMe and TVSum (5 splits each = 10 models)
+- R-DSN on SumMe and TVSum (5 splits each = 10 models)
 
-### **Model Performance on Standard Datasets**
+Total: 40 unsupervised models
 
-| Model | SumMe F-Score | TVSum F-Score | Processing Speed |
-|-------|---------------|---------------|------------------|
-| DR-DSN | **41.4%** | **58.1%** | ~2.3 FPS |
-| D-DSN | 39.1% | 56.7% | ~2.8 FPS |
-| DSNsup | 40.8% | 57.4% | ~2.5 FPS |
+#### Complete Supervised Training
 
-### **System Performance**
-
-| Hardware | Processing Time (1min video) | Memory Usage |
-|----------|------------------------------|--------------|
-| CPU Only | ~45 seconds | 2.1 GB |
-| GTX 1660 | ~12 seconds | 3.2 GB |
-| RTX 3080 | ~6 seconds | 4.1 GB |
-
-### **Supported Video Specifications**
-
-| Parameter | Range | Optimal |
-|-----------|-------|---------|
-| **Resolution** | 240p - 4K | 720p - 1080p |
-| **Duration** | 30s - 60min | 2min - 10min |
-| **FPS** | 15 - 60 FPS | 24 - 30 FPS |
-| **Formats** | MP4, AVI, MOV, MKV | MP4 (H.264) |
-
-## Advanced Configuration
-
-### **Model Hyperparameters**
-```python
-# config.py
-MODEL_CONFIG = {
-    'hidden_dim': 256,
-    'input_dim': 1024,  # GoogLeNet pool5 features
-    'num_layers': 2,
-    'dropout': 0.5,
-    'learning_rate': 1e-05,
-    'weight_decay': 1e-05,
-    'beta': 0.01,  # Diversity reward weight
-    'gamma': 0.1   # LR scheduler gamma
-}
-
-SUMMARY_CONFIG = {
-    'method': 'knapsack',  # optimization method
-    'proportion': 0.15,    # 15% summary length
-    'fps_output': 30       # output video FPS
-}
-```
-
-### **Custom Dataset Integration**
-```python
-# Create custom dataset format
-import h5py
-import numpy as np
-
-def create_custom_dataset(video_features, video_names, output_path):
-    """
-    video_features: dict {video_name: np.array(T, 1024)}
-    video_names: list of video identifiers
-    """
-    with h5py.File(output_path, 'w') as f:
-        for video_name in video_names:
-            features = video_features[video_name]
-            T = len(features)
-            
-            grp = f.create_group(f'video_{video_name}')
-            grp['features'] = features
-            grp['gtscore'] = np.zeros(T)
-            grp['gtsummary'] = np.zeros(T)
-            grp['change_points'] = np.array([[0, T-1]])
-            grp['n_frame_per_seg'] = np.array([T])
-            grp['n_frames'] = np.array(T)
-            grp['picks'] = np.arange(T)
-            grp['user_summary'] = np.zeros((1, T))
-```
-
-## Troubleshooting
-
-### **Common Issues**
-
-#### **1. CUDA Out of Memory**
 ```bash
-# Solution 1: Reduce batch size
-export CUDA_VISIBLE_DEVICES=0
-python main.py --batch-size 1
-
-# Solution 2: Use CPU
-python main.py --gpu -1
-
-# Solution 3: Mixed precision
-pip install apex
-python main.py --fp16
+bash run_supervised.sh
 ```
 
-#### **2. FFmpeg Not Found**
+This script trains all supervised models:
+- DR-DSNsup on SumMe and TVSum (5 splits each = 10 models)
+- DSNsup on SumMe and TVSum (5 splits each = 10 models)
+
+Total: 20 supervised models
+
+### Training Output Structure
+
+All training logs and model checkpoints are saved to:
+
+```
+log/
+├── {MODEL}-{DATASET}-split{ID}/
+│   ├── model_epoch_{N}.pth.tar
+│   ├── log.txt
+│   └── reward_curves.png
+```
+
+Example structure for one trained model:
+```
+log/DR-DSN-summe-split0/
+├── model_epoch_60.pth.tar  # Final model checkpoint
+├── log.txt                 # Training log with loss/reward history
+└── reward_curves.png       # Training visualization
+```
+
+## Web Application
+
+### Launch Streamlit Interface
+
 ```bash
-# Windows: Add FFmpeg to PATH
-set PATH=%PATH%;C:\ffmpeg\bin
-
-# macOS: Reinstall with homebrew
-brew uninstall ffmpeg && brew install ffmpeg
-
-# Linux: Update package manager
-sudo apt update && sudo apt install --reinstall ffmpeg
+streamlit run streamlit_app.py
 ```
 
-#### **3. Model Loading Error**
-```python
-# Fix checkpoint compatibility
-import torch
+Access the application via browser at: http://localhost:8501
 
-def fix_checkpoint(checkpoint_path):
-    checkpoint = torch.load(checkpoint_path, map_location='cpu')
-    # Remove 'module.' prefix from state dict keys
-    new_state_dict = {}
-    for k, v in checkpoint.items():
-        new_key = k.replace('module.', '')
-        new_state_dict[new_key] = v
-    return new_state_dict
+### User Interface Guide
+
+1. **Upload Video**: Drag and drop video files (MP4, AVI, MOV, MKV)
+2. **Select Model**: Choose architecture (DR-DSN, D-DSN, D-DSN-nolambda, R-DSN, DR-DSNsup, DSNsup)
+3. **Select Dataset**: Pick pre-trained model (SumMe or TVSum)
+4. **Configure Output**: Set summary ratio and output FPS
+5. **Process**: Click "Process Video" to generate summary
+6. **Download**: Save the generated video summary
+
+### Application Features
+
+- **Real-time Analytics**: Frame importance visualization with interactive charts
+- **Video Information**: Automatic detection of resolution, FPS, and duration
+- **Processing Progress**: Live progress tracking with estimated completion time
+- **Preview System**: Built-in video player for summary preview
+- **Multi-format Export**: Support for various output formats
+- **Modern UI**: Responsive design with professional styling
+
+## Project Structure
+
+```
+Deep-Reinforcement-Learning-for-Unsupervised-Video-Summarization/
+├── datasets/                    # Dataset files and configuration
+│   ├── *.h5                    # Feature datasets (SumMe, TVSum, etc.)
+│   ├── summe_splits.json       # SumMe cross-validation splits
+│   └── tvsum_splits.json       # TVSum cross-validation splits
+├── log/                        # Training outputs and model checkpoints
+│   ├── DR-DSN-*/              # DR-DSN model checkpoints (20 models)
+│   ├── D-DSN-*/               # D-DSN model checkpoints (10 models)
+│   ├── D-DSN-nolambda-*/      # D-DSN-nolambda checkpoints (10 models)
+│   ├── R-DSN-*/               # R-DSN model checkpoints (10 models)
+│   ├── DR-DSNsup-*/           # DR-DSNsup model checkpoints (10 models)
+│   └── DSNsup-*/              # DSNsup model checkpoints (10 models)
+├── imgs/                       # Documentation images and visualizations
+├── streamlit_output/           # Web application output directory
+├── video/                      # Sample videos for testing
+├── main.py                     # Core training script
+├── models.py                   # Neural network architectures
+├── streamlit_app.py           # Web application interface
+├── run_experiments.sh         # Automated unsupervised training
+├── run_supervised.sh          # Automated supervised training
+├── create_split.py            # Dataset split generation utility
+├── requirements.txt           # Python dependencies
+└── README.md                  # Project documentation
 ```
 
-#### **4. Streamlit Performance Issues**
-```bash
-# Optimize Streamlit configuration
-echo "
-[server]
-enableCORS = false
-enableXsrfProtection = false
-maxUploadSize = 200
+## Citation
 
-[browser]
-gatherUsageStats = false
-" > ~/.streamlit/config.toml
-```
+This implementation is based on the AAAI'18 research paper by Kaiyang Zhou, Yu Qiao, and Tao Xiang.
 
-## Development and Customization
-
-### **Adding New Models**
-```python
-# models.py - Add custom architecture
-class CustomDSN(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers=2):
-        super(CustomDSN, self).__init__()
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, 
-                           batch_first=True, bidirectional=True)
-        self.fc = nn.Linear(hidden_dim * 2, 1)
-        self.dropout = nn.Dropout(0.5)
-        
-    def forward(self, x):
-        lstm_out, _ = self.lstm(x)
-        scores = self.fc(self.dropout(lstm_out))
-        scores = torch.sigmoid(scores).squeeze(-1)
-        return scores
-```
-
-### **Custom Reward Functions**
-```python
-# rewards.py - Implement custom rewards
-def custom_reward_function(machine_summary, features):
-    """
-    machine_summary: binary array (T,)
-    features: feature array (T, D)
-    """
-    # Representativeness reward
-    rep_reward = compute_representativeness(machine_summary, features)
-    
-    # Diversity reward  
-    div_reward = compute_diversity(machine_summary, features)
-    
-    # Custom temporal coherence reward
-    temp_reward = compute_temporal_coherence(machine_summary)
-    
-    # Combined reward
-    total_reward = rep_reward + 0.1 * div_reward + 0.05 * temp_reward
-    return total_reward
-```
-
-### **Extending Web Interface**
-```python
-# streamlit_app.py - Add new features
-def add_advanced_settings():
-    st.sidebar.markdown("### Advanced Settings")
-    
-    # Custom reward weights
-    rep_weight = st.sidebar.slider("Representativeness Weight", 0.0, 1.0, 0.8)
-    div_weight = st.sidebar.slider("Diversity Weight", 0.0, 1.0, 0.1)
-    
-    # Temporal settings
-    temporal_window = st.sidebar.selectbox("Temporal Window", [5, 10, 15, 20])
-    
-    # Export settings
-    export_format = st.sidebar.selectbox("Export Format", 
-                                       ["MP4", "AVI", "MOV", "GIF"])
-    
-    return {
-        'rep_weight': rep_weight,
-        'div_weight': div_weight,
-        'temporal_window': temporal_window,
-        'export_format': export_format
-    }
-```
-
-## Research and References
-
-### **Core Algorithm**
-The system is based on the research:
-- **Paper**: "Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward"
-- **Authors**: Kaiyang Zhou, Yu Qiao, Tao Xiang
-- **Conference**: AAAI 2018
-- **arXiv**: [1801.00054](https://arxiv.org/abs/1801.00054)
-
-### **Key Innovations**
-1. **Diversity-Representativeness Reward**: Balances content diversity and representativeness
-2. **Unsupervised Learning**: No ground truth annotations required
-3. **Attention Mechanism**: Automatically learns importance weights
-4. **Knapsack Optimization**: Optimal frame selection with constraints
-
-### **Related Works**
-- SumMe Dataset: [Gygli et al., ECCV 2014]
-- TVSum Dataset: [Song et al., CVPR 2015]  
-- Attention-based Summarization: [Zhang et al., AAAI 2016]
-- Adversarial Learning: [Mahasseni et al., CVPR 2017]
-
-## Contributing
-
-### **Development Setup**
-```bash
-# Fork repository
-git clone https://github.com/your-username/AI-Video-Summarization
-cd AI-Video-Summarization
-
-# Create development branch
-git checkout -b feature/your-feature-name
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-python -m pytest tests/
-
-# Pre-commit hooks
-pre-commit install
-```
-
-### **Code Style**
-- **Python**: PEP 8 with Black formatter
-- **Comments**: Clear and concise documentation
-- **Documentation**: Docstrings following Google style
-
-### **Contribution Guidelines**
-1. **Issues**: Clearly describe problems with reproduction steps
-2. **Pull Requests**: Include tests and documentation updates  
-3. **Features**: Discuss in issues before implementation
-4. **Bug Fixes**: Include regression tests
-
-## License and Credits
-
-### **License**
-```
-MIT License
-
-Copyright (c) 2024 AI Video Summarization Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```
-
-### **Acknowledgments**
-- **Original Research**: [KaiyangZhou/pytorch-vsumm-reinforce](https://github.com/KaiyangZhou/pytorch-vsumm-reinforce)
-- **Datasets**: SumMe and TVSum datasets
-- **Libraries**: PyTorch, Streamlit, OpenCV, Plotly
-- **Community**: Contributors and beta testers
-
-### **Citation**
 ```bibtex
-@article{zhou2017reinforcevsumm, 
-   title={Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward},
-   author={Zhou, Kaiyang and Qiao, Yu and Xiang, Tao}, 
-   journal={arXiv:1801.00054}, 
-   year={2017} 
-}
-
-@software{ai_video_summarization_2024,
-  title={AI Video Summarization System with Modern Web Interface},
-  author={Your Team},
-  year={2024},
-  url={https://github.com/your-repo/AI-Video-Summarization}
+@article{zhou2017reinforcevsumm,
+  title={Deep Reinforcement Learning for Unsupervised Video Summarization with Diversity-Representativeness Reward},
+  author={Zhou, Kaiyang and Qiao, Yu and Xiang, Tao},
+  journal={arXiv preprint arXiv:1801.00054},
+  year={2017}
 }
 ```
-
----
-
-## Support and Contact
-
-- **Bug Reports**: [GitHub Issues](https://github.com/your-repo/issues)
-- **Feature Requests**: [GitHub Discussions](https://github.com/your-repo/discussions)
-- **Email**: your-email@university.edu
-- **Documentation**: [Wiki Pages](https://github.com/your-repo/wiki)
-
-**Made with passion by AI Research Team**
