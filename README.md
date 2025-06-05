@@ -236,7 +236,7 @@ Deep-Reinforcement-Learning-for-Unsupervised-Video-Summarization/
 ├── streamlit_app.py           # Web application interface
 ├── run_experiments.sh         # Automated unsupervised training
 ├── run_supervised.sh          # Automated supervised training
-├── create_split.py            # Dataset split generation utility
+├── create_split.py            # Dataset split generation utili  ty
 ├── requirements.txt           # Python dependencies
 └── README.md                  # Project documentation
 ```
