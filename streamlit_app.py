@@ -1020,7 +1020,17 @@ if uploaded_file is not None:
     st.markdown("---")
     st.markdown("### 🎬 Original Video Preview")
     
-    with st.container():        
+    with st.container():
+        # Add custom CSS to control video size
+        st.markdown("""
+        <style>
+            .stVideo {
+                width: 60% !important;  /* Adjust percentage as needed */
+                margin: 0 auto;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+        
         # Show original video
         st.video(uploaded_file.getvalue())
 
@@ -1076,62 +1086,62 @@ if uploaded_file is not None:
         **Selected:** {stats['selected_frames']}/{stats['original_frames']} frames (Ratio: {stats['summary_ratio']:.3f})
         """)
         
-        # Video Comparison Section
-        st.markdown("---")
-        st.markdown("#### 🎭 Video Comparison")
+        # # Video Comparison Section
+        # st.markdown("---")
+        # st.markdown("#### 🎭 Video Comparison")
         
-        if 'output_path' in st.session_state.results and osp.exists(st.session_state.results['output_path']):
-            # Read summary video
-            with open(st.session_state.results['output_path'], 'rb') as video_file:
-                summary_video_bytes = video_file.read()
+        # if 'output_path' in st.session_state.results and osp.exists(st.session_state.results['output_path']):
+        #     # Read summary video
+        #     with open(st.session_state.results['output_path'], 'rb') as video_file:
+        #         summary_video_bytes = video_file.read()
             
-            # Side-by-side comparison
-            col_orig, col_summary = st.columns(2)
+        #     # Side-by-side comparison
+        #     col_orig, col_summary = st.columns(2)
             
-            with col_orig:
-                st.markdown("##### 📹 Original Video")
-                with st.container():
-                    st.markdown('<div class="video-container">', unsafe_allow_html=True)
-                    st.video(uploaded_file.getvalue())
+        #     with col_orig:
+        #         st.markdown("##### 📹 Original Video")
+        #         with st.container():
+        #             st.markdown('<div class="video-container">', unsafe_allow_html=True)
+        #             st.video(uploaded_file.getvalue())
                     
-                    # Original video metrics
-                    st.metric("📊 File Size", f"{uploaded_file.size / (1024*1024):.1f} MB")
-                    st.metric("⏱️ Estimated Duration", f"{stats['original_duration_est']:.1f}s")
-                    st.metric("🎬 Total Frames", f"{stats['original_frames']:,}")
+        #             # Original video metrics
+        #             st.metric("📊 File Size", f"{uploaded_file.size / (1024*1024):.1f} MB")
+        #             st.metric("⏱️ Estimated Duration", f"{stats['original_duration_est']:.1f}s")
+        #             st.metric("🎬 Total Frames", f"{stats['original_frames']:,}")
                     
-                    st.markdown('</div>', unsafe_allow_html=True)
+        #             st.markdown('</div>', unsafe_allow_html=True)
             
-            with col_summary:
-                st.markdown("##### ✨ AI Summary")
-                with st.container():
-                    st.markdown('<div class="video-container">', unsafe_allow_html=True)
-                    st.video(summary_video_bytes)
+        #     with col_summary:
+        #         st.markdown("##### ✨ AI Summary")
+        #         with st.container():
+        #             st.markdown('<div class="video-container">', unsafe_allow_html=True)
+        #             st.video(summary_video_bytes)
                     
-                    # Summary video metrics
-                    summary_size = len(summary_video_bytes) / (1024*1024)
-                    st.metric("📊 File Size", f"{summary_size:.1f} MB")
-                    st.metric("⏱️ Duration", f"{stats['summary_duration']:.1f}s")
-                    st.metric("🎬 Selected Frames", f"{stats['summary_frames']:,}")
+        #             # Summary video metrics
+        #             summary_size = len(summary_video_bytes) / (1024*1024)
+        #             st.metric("📊 File Size", f"{summary_size:.1f} MB")
+        #             st.metric("⏱️ Duration", f"{stats['summary_duration']:.1f}s")
+        #             st.metric("🎬 Selected Frames", f"{stats['summary_frames']:,}")
                     
-                    st.markdown('</div>', unsafe_allow_html=True)
+        #             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Comparison metrics
-            st.markdown("##### 📊 Comparison Metrics")
-            col_comp1, col_comp2, col_comp3, col_comp4 = st.columns(4)
+        #     # Comparison metrics
+        #     st.markdown("##### 📊 Comparison Metrics")
+        #     col_comp1, col_comp2, col_comp3, col_comp4 = st.columns(4)
             
-            with col_comp1:
-                size_reduction = (1 - (len(summary_video_bytes) / uploaded_file.size)) * 100
-                st.metric("🗜️ Size Reduction", f"{size_reduction:.1f}%")
+        #     with col_comp1:
+        #         size_reduction = (1 - (len(summary_video_bytes) / uploaded_file.size)) * 100
+        #         st.metric("🗜️ Size Reduction", f"{size_reduction:.1f}%")
             
-            with col_comp2:
-                time_reduction = (1 - (stats['summary_duration'] / stats['original_duration_est'])) * 100
-                st.metric("⏱️ Time Reduction", f"{time_reduction:.1f}%")
+        #     with col_comp2:
+        #         time_reduction = (1 - (stats['summary_duration'] / stats['original_duration_est'])) * 100
+        #         st.metric("⏱️ Time Reduction", f"{time_reduction:.1f}%")
             
-            with col_comp3:
-                st.metric("🎯 Compression Ratio", f"{stats['compression_ratio']:.1f}%")
+        #     with col_comp3:
+        #         st.metric("🎯 Compression Ratio", f"{stats['compression_ratio']:.1f}%")
             
-            with col_comp4:
-                st.metric("📐 Selection Ratio", f"{stats['summary_ratio']:.3f}")
+        #     with col_comp4:
+        #         st.metric("📐 Selection Ratio", f"{stats['summary_ratio']:.3f}")
           # Detailed Video Player Section
         if 'output_path' in st.session_state.results and osp.exists(st.session_state.results['output_path']):
             st.markdown("---")
@@ -1144,66 +1154,30 @@ if uploaded_file is not None:
             
             # Create a styled container for the detailed video player
             with st.container():
-                st.markdown('<div class="video-container">', unsafe_allow_html=True)
                 
                 # Display video player using st.video with larger size
                 st.video(summary_video_bytes)
-                
-                # Video details below the player
-                col_detail1, col_detail2, col_detail3, col_detail4 = st.columns(4)
-                with col_detail1:
-                    st.metric("🎬 Duration", f"{stats['summary_duration']:.1f}s")
-                with col_detail2:
-                    st.metric("📊 Frames", f"{stats['summary_frames']:,}")
-                with col_detail3:
-                    st.metric("🗜️ Compression", f"{stats['compression_ratio']:.1f}%")
-                with col_detail4:
-                    st.metric("📐 Ratio", f"{stats['summary_ratio']:.3f}")
-                
-                st.markdown('</div>', unsafe_allow_html=True)
+            
             
             st.markdown("---")
-            st.markdown("#### 📥 Download & Actions")
+            st.markdown("#### 📥 Download")
             
-            # Beautiful download button and actions
+            # Simple download button (no columns)
             base_name = osp.splitext(uploaded_file.name)[0]
-            col1, col2 = st.columns([1, 1])
-            with col1:
-                st.download_button(
-                    label="📥 Download Summary Video",
-                    data=summary_video_bytes,
-                    file_name=f'{base_name}_summary.mp4',
-                    mime='video/mp4',
-                    use_container_width=True,
-                    help="Download the AI-generated video summary"
-                )
-            
-            with col2:
-                # Add option to view video details
-                if st.button("📋 Video Details", use_container_width=True, help="Show detailed video information"):
-                    st.info(f"""
-                    **📹 Video Summary Information**
-                    
-                    **Original:** {stats['original_frames']:,} frames ({stats['original_duration_est']:.1f}s)
-                    **Summary:** {stats['summary_frames']:,} frames ({stats['summary_duration']:.1f}s)
-                    **Selected Frames:** {stats['selected_frames']:,}
-                    **Compression Ratio:** {stats['compression_ratio']:.1f}%
-                    **Summary Ratio:** {stats['summary_ratio']:.3f}
-                    **Frames Kept:** {stats['frames_kept']:.1f}%
-                    
-                    **Model Configuration:**
-                    - Architecture: {selected_model_type}
-                    - Dataset: {selected_dataset}
-                    - Split: {selected_split['split']}
-                    """)
+            st.download_button(
+                label="📥 Download Summary Video",
+                data=summary_video_bytes,
+                file_name=f'{base_name}_summary.mp4',
+                mime='video/mp4',
+                use_container_width=True,  # Not using full width for better aesthetics
+                help="Download the AI-generated video summary"
+            )
             
             # Compression status info
             if stats['compression_ratio'] > 0:
                 st.success(f"✨ **Summary ready!** Video compressed by {stats['compression_ratio']:.1f}% - Duration reduced from {stats['original_duration_est']:.1f}s to {stats['summary_duration']:.1f}s")
             else:
                 st.warning(f"⚠️ **Warning:** Model selected all frames ({stats['summary_frames']}/{stats['original_frames']}). This suggests the model may need adjustment.")
-        else:
-            st.error("❌ Video file was not created properly.")
             
         # Add button to generate new summary
         st.markdown("---")
