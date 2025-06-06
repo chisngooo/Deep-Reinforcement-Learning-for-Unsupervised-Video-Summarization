@@ -50,8 +50,6 @@ parser.add_argument('--sup-only', action='store_true',
                     help="chỉ CE (DSNsup); nếu bỏ, CE sẽ cộng với RL (DR-DSNsup)")
 parser.add_argument('--ce-weight', type=float, default=1.0,
                     help="β₃ – trọng số CE so với RL")
-parser.add_argument('--ent-weight', type=float, default=0.1,
-                    help="λ_entropy cho confidence penalty (Pereyra 2017)")
 
 # Misc
 parser.add_argument('--seed', type=int, default=1, help="random seed (default: 1)")
@@ -135,138 +133,69 @@ def main():
 
     for epoch in range(start_epoch, args.max_epoch):
         idxs = np.arange(len(train_keys))
-        np.random.shuffle(idxs) # Xáo trộn các chỉ số để tăng tính ngẫu nhiên khi huấn luyện
+        np.random.shuffle(idxs)
 
         for idx in idxs:
             key = train_keys[idx]
-            seq = dataset[key]['features'][...] # Chuỗi đặc trưng của video, kích thước (seq_len, dim)
-            seq = torch.from_numpy(seq).unsqueeze(0) # Thêm chiều batch, kích thước (1, seq_len, dim)
+            seq = dataset[key]['features'][...]
+            seq = torch.from_numpy(seq).unsqueeze(0)
             if use_gpu: seq = seq.to('cuda')
-            probs = model(seq) # Xác suất được mô hình dự đoán, kích thước (1, seq_len, 1)
+            probs = model(seq)
             
-            ######################################################
-            # -------- supervised branch (only if enabled) -------
-            ######################################################
+            # Supervised learning branch (if enabled)
             if args.supervised:
-                # gtsummary đã khớp 2 fps (vector 0/1, shape (T,))
                 labels = torch.from_numpy(dataset[key]['gtsummary'][...]).float()
-                labels = labels.unsqueeze(0).to(probs.device)       # (1,T)
-
-                # (a) cross-entropy with explicit reduction='mean'
-                # Squeeze the last dimension of probs to match labels shape
-                logits = probs.squeeze(-1)  # (1,T)
-                ce = nn.functional.binary_cross_entropy(logits, labels, reduction='mean')
-
-                # (b) confidence penalty  λ * H(p)
-                # Use logits for consistency with BCE
-                q = logits  # (1,T)
-                entropy = -(q * q.clamp(1e-6).log() + 
-                            (1-q) * (1-q).clamp(1e-6).log()).mean()
-                sup_loss = ce + args.ent_weight * entropy           # L_sup
-
-            # --- penalty giữ độ dài summary ---
-            # L_percentage = ||1/T·∑_{t=1}^T p_t - ε||²
-            # Trong đó: 
-            # - ε là tỉ lệ khung hình cần chọn (mục tiêu là 0.5 tức 50%)
-            # - p_t là xác suất lựa chọn khung hình t
-            # - T là tổng số khung hình
-            # Mục tiêu là để giữ độ dài tóm tắt khoảng 50% video gốc
-            cost = args.beta * (probs.mean() - 0.5)**2        # L_percentage
-            
-            # Khởi tạo phân phối Bernoulli dựa trên xác suất dự đoán
-            # Phân phối này được sử dụng để lấy mẫu các hành động nhị phân (0/1)
-            # Đây là việc thực hiện công thức (2) trong paper: a_t ~ Bernoulli(p_t)
-            m = Bernoulli(probs)
-            epis_rewards = [] # Lưu phần thưởng cho mỗi episode
-            
-            # Thực hiện nhiều episode để ổn định việc học
-            # Như paper đề cập trong phần "Training with Policy Gradient":
-            # "Since Eq.(8) involves the expectation over high-dimensional action sequences, 
-            # which is hard to compute directly, we approximate the gradient by running the agent for 
-            # N episodes on the same video and then taking the average gradient"
-            #
-            # args.num_episode mặc định là 5 như paper đề cập trong phần "Optimization"
-            for _ in range(args.num_episode):
-                # Lấy mẫu hành động nhị phân từ phân phối Bernoulli (Công thức (2) trong paper)
-                # a_t ~ Bernoulli(p_t)
-                # Trong đó: 
-                # - a_t là hành động (0/1) tại thời điểm t, cho biết khung hình t có được chọn hay không
-                # - p_t là xác suất dự đoán bởi mạng DSN
-                actions = m.sample()
+                labels = labels.unsqueeze(0).to(probs.device)
                 
-                # Tính log xác suất của hành động đã lấy mẫu
-                # Cần để tính gradient của log policy: ∇_θ log π_θ(a_t|h_t)
-                # Đây là thành phần quan trọng trong công thức REINFORCE (8) và (9) trong paper
+                # Cross-entropy loss (Equation 14 in paper)
+                logits = probs.squeeze(-1)
+                ce = nn.functional.binary_cross_entropy(logits, labels, reduction='mean')
+                sup_loss = ce
+
+            # Length penalty (Equation 11 in paper)
+            cost = args.beta * (probs.mean() - 0.5)**2
+            
+            # Sample actions using Bernoulli distribution
+            m = Bernoulli(probs)
+            epis_rewards = []
+            
+            # Run multiple episodes (default: 5 as mentioned in paper)
+            for _ in range(args.num_episode):
+                actions = m.sample()
                 log_probs = m.log_prob(actions).squeeze(-1)
                 
-                # Tính phần thưởng cho hành động đã lấy mẫu dựa trên reward_type
-                # Phần thưởng này là R(S) trong công thức (6) của paper
-                # Gọi với ignore_far_sim=True cho tất cả các trường hợp (λ=20 trong phần "Implementation details")
-                # Hàm compute_reward sẽ tự động xử lý trường hợp d-nolambda bên trong
+                # Compute reward (Equation 6 in paper)
                 reward = compute_reward(seq, actions, use_gpu=use_gpu, reward_type=args.reward_type)
                 
-                # Tính gradient của mất mát REINFORCE với baseline (Công thức (9) trong paper)
-                # ∇_θJ(θ) ≈ 1/N·∑_{n=1}^N ∑_{t=1}^T R_n·∇_θ log π_θ(a_t|h_t)
-                # Thực hiện: ∇_θ log π_θ(a_t|h_t)·(R_n-b) để giảm phương sai 
-                # Trong đó:
-                # - log π_θ(a_t|h_t): log xác suất của hành động được chọn
-                # - R_n: phần thưởng nhận được từ episode n
-                # - b: baseline (trung bình phần thưởng từ các episode trước) để giảm phương sai
-                #
-                # Như được đề cập trong phần "Training with Policy Gradient" của paper:
-                # "A common countermeasure is to subtract the reward by a constant baseline b, 
-                # so the gradient becomes ∇_θJ(θ) ≈ 1/N·∑_{n=1}^N ∑_{t=1}^T (R_n-b)·∇_θ log π_θ(a_t|h_t)"
-                #
-                # Dùng sum() thay vì mean() để tính tổng gradient, sẽ ổn định hơn cho triển khai PyTorch
+                # REINFORCE gradient with baseline (Equation 9 in paper)
                 expected_reward = log_probs.sum() * (reward - baselines[key])
-                
-                # Cập nhật hàm mất mát (giảm giá trị âm của phần thưởng kỳ vọng)
-                # Đây là phần L_RL của hàm mục tiêu tổng thể
-                cost -= expected_reward          # L_RL
+                cost -= expected_reward
                 epis_rewards.append(reward.item())
             
-            # ============ thêm Cross-Entropy loss vào tổng loss ============
+            # ============ Supervised Learning Extension (theo paper gốc) ============
             if args.supervised:
                 if args.sup_only:            # ----- DSNsup -----
-                    # Chỉ sử dụng Cross-Entropy loss mà không có Reinforcement Learning
-                    # Đây là biến thể giám sát hoàn toàn được đề cập trong phần "Extension to Supervised Learning"
-                    # của paper, dùng để so sánh với phương pháp học tăng cường
-                    cost = sup_loss + args.beta * (probs.mean() - 0.5)**2  # giữ CE+entropy+length
+                    # Chỉ sử dụng Cross-Entropy loss theo paper gốc (Equation 14)
+                    # L_MLE = Σ log p(t|θ) cho t ∈ Y*
+                    cost = sup_loss + args.beta * (probs.mean() - 0.5)**2
                 else:                        # ----- DR-DSNsup ---
-                    # Kết hợp cả Cross-Entropy loss và Reinforcement Learning
-                    # Biến thể có giám sát được mô tả trong phần "Extension to Supervised Learning":
-                    # "Given the keyframe indices for a video Y* = {y*_1,...,y*_|Y*|}, we use Maximum Likelihood Estimation (MLE)"
-                    # "The objective is formulated as L_MLE = ∑_{t∈Y*} log p(t;θ)"
+                    # Kết hợp Reinforcement Learning và Supervised Learning
+                    # Theo paper: "Extension to Supervised Learning"
                     cost = cost + args.ce_weight * sup_loss
 
-            # Thực hiện lan truyền ngược và cập nhật tham số mô hình
-            optimizer.zero_grad() # Xóa gradient
-            cost.backward() # Tính toán gradient
-            # Giới hạn norm của gradient để ổn định huấn luyện (gradient clipping)
-            # Kỹ thuật này giúp tránh gradient explosion, đặc biệt quan trọng khi huấn luyện RNN/LSTM
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0) 
-            optimizer.step() # Cập nhật tham số mô hình theo gradient đã tính toán
+            # Thực hiện backpropagation và cập nhật tham số
+            optimizer.zero_grad()
+            cost.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+            optimizer.step()
             
-            # Cập nhật baseline bằng phương pháp trung bình di chuyển (moving average)
-            # Trong paper, phần "Training with Policy Gradient" có đề cập:
-            # "where b is simply computed as the moving average of rewards experienced so far for computational efficiency."
-            #
-            # b được tính bằng trung bình di chuyển của phần thưởng:
-            # b ← γ·b + (1-γ)·R̄
-            # Trong đó:
-            # - γ = 0.9 là hệ số suy giảm (decay factor)
-            # - b là baseline cũ
-            # - R̄ là phần thưởng trung bình của các episode hiện tại
-            #
-            # Baseline này rất quan trọng để giảm phương sai trong quá trình huấn luyện REINFORCE
-            # như được mô tả trong phần "Training with Policy Gradient" của paper
+            # Cập nhật baseline (moving average của rewards)
             baselines[key] = 0.9 * baselines[key] + 0.1 * np.mean(epis_rewards)
-            reward_writers[key].append(np.mean(epis_rewards)) # Lưu phần thưởng trung bình cho mỗi video
+            reward_writers[key].append(np.mean(epis_rewards))
 
         epoch_reward = np.mean([np.mean(reward_writers[key]) for key in reward_writers])
         print("epoch {}/{}\t reward {}\t".format(epoch+1, args.max_epoch, epoch_reward))
         
-        # Cập nhật learning rate theo scheduler nếu có
         if args.stepsize > 0:
             scheduler.step()
 
@@ -285,21 +214,11 @@ def main():
     dataset.close()
 
 def evaluate(model, dataset, test_keys, use_gpu):
-    """
-    Đánh giá mô hình trên tập dữ liệu kiểm thử
-    Phương pháp đánh giá được mô tả trong phần "Summary Generation" và "Experiments"
-    
-    Tham số:
-        model: Mô hình DSN đã được huấn luyện
-        dataset: Tập dữ liệu chứa các video (SumMe hoặc TVSum)
-        test_keys: Danh sách các khóa video dùng để kiểm thử
-        use_gpu: Có sử dụng GPU không
-    """
     print("==> Test")
-    with torch.inference_mode():  # Sử dụng inference_mode của PyTorch để tăng hiệu suất
-        model.eval()  # Chuyển mô hình sang chế độ đánh giá
-        fms = []  # Lưu trữ các F-score
-        eval_metric = 'avg' if args.metric == 'tvsum' else 'max'  # Lựa chọn phương pháp đánh giá dựa trên dataset
+    with torch.inference_mode():
+        model.eval()
+        fms = []
+        eval_metric = 'avg' if args.metric == 'tvsum' else 'max'
 
         if args.verbose: table = [["No.", "Video", "F-score"]]
 
@@ -307,28 +226,21 @@ def evaluate(model, dataset, test_keys, use_gpu):
             h5_res = h5py.File(osp.join(args.save_dir, 'result.h5'), 'w')
 
         for key_idx, key in enumerate(test_keys):
-            # Lấy đặc trưng của video từ dataset
             seq = dataset[key]['features'][...]
-            seq = torch.from_numpy(seq).unsqueeze(0)  # Thêm chiều batch
+            seq = torch.from_numpy(seq).unsqueeze(0)
             if use_gpu: seq = seq.to('cuda')
             
-            # Dự đoán xác suất quan trọng cho mỗi khung hình
             probs = model(seq)
             probs = probs.data.cpu().squeeze().numpy()
 
-            # Lấy thông tin về các điểm thay đổi (change points) và thông tin khác của video
-            cps = dataset[key]['change_points'][...]  # Các điểm thay đổi cảnh
-            num_frames = dataset[key]['n_frames'][()]  # Tổng số khung hình
-            nfps = dataset[key]['n_frame_per_seg'][...].tolist()  # Số khung hình mỗi đoạn
-            positions = dataset[key]['picks'][...]  # Vị trí của các khung hình được lấy mẫu
-            user_summary = dataset[key]['user_summary'][...]  # Tóm tắt do người dùng tạo
+            cps = dataset[key]['change_points'][...]
+            num_frames = dataset[key]['n_frames'][()]
+            nfps = dataset[key]['n_frame_per_seg'][...].tolist()
+            positions = dataset[key]['picks'][...]
+            user_summary = dataset[key]['user_summary'][...]
 
-            # Tạo tóm tắt video dựa trên xác suất dự đoán và thuật toán knapsack
-            # (giải quyết bài toán lựa chọn các đoạn video quan trọng nhất với ràng buộc về độ dài)
             machine_summary = vsum_tools.generate_summary(probs, cps, num_frames, nfps, positions)
             
-            # Đánh giá tóm tắt tự động với tóm tắt của người dùng
-            # fm: F-score đo lường mức độ trùng khớp giữa tóm tắt máy và người dùng
             fm, _, _ = vsum_tools.evaluate_summary(machine_summary, user_summary, eval_metric)
             fms.append(fm)
 
@@ -336,11 +248,10 @@ def evaluate(model, dataset, test_keys, use_gpu):
                 table.append([key_idx+1, key, "{:.1%}".format(fm)])
 
             if args.save_results:
-                # Lưu kết quả vào file h5
-                h5_res.create_dataset(key + '/score', data=probs)  # Điểm quan trọng dự đoán
-                h5_res.create_dataset(key + '/machine_summary', data=machine_summary)  # Tóm tắt tự động
-                h5_res.create_dataset(key + '/gtscore', data=dataset[key]['gtscore'][...])  # Điểm ground truth
-                h5_res.create_dataset(key + '/fm', data=fm)  # F-score
+                h5_res.create_dataset(key + '/score', data=probs)
+                h5_res.create_dataset(key + '/machine_summary', data=machine_summary)
+                h5_res.create_dataset(key + '/gtscore', data=dataset[key]['gtscore'][...])
+                h5_res.create_dataset(key + '/fm', data=fm)
 
     if args.verbose:
         print(tabulate(table))

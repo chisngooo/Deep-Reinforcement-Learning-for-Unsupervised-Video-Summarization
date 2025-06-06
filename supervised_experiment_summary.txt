@@ -1,0 +1,33 @@
+Kết quả thí nghiệm supervised learning - Thu Jun  5 22:58:21 +07 2025
+=============================================
+DSNsup trên summe (Split 0): F1-score = 45.0%
+DSNsup trên summe (Split 1): F1-score = 41.4%
+DSNsup trên summe (Split 2): F1-score = 44.4%
+DSNsup trên summe (Split 3): F1-score = 28.7%
+DSNsup trên summe (Split 4): F1-score = 36.4%
+DSNsup trên summe: Trung bình F1-score = 39.18% (5/5 splits)
+DR-DSNsup trên summe (Split 0): F1-score = 51.3%
+DR-DSNsup trên summe (Split 1): F1-score = 45.4%
+DR-DSNsup trên summe (Split 2): F1-score = 42.5%
+DR-DSNsup trên summe (Split 3): F1-score = 30.6%
+DR-DSNsup trên summe (Split 4): F1-score = 35.5%
+DR-DSNsup trên summe: Trung bình F1-score = 41.06% (5/5 splits)
+DSNsup trên tvsum (Split 0): F1-score = 52.0%
+DSNsup trên tvsum (Split 1): F1-score = 54.5%
+DSNsup trên tvsum (Split 2): F1-score = 51.4%
+DSNsup trên tvsum (Split 3): F1-score = 53.4%
+DSNsup trên tvsum (Split 4): F1-score = 50.1%
+DSNsup trên tvsum: Trung bình F1-score = 52.28% (5/5 splits)
+DR-DSNsup trên tvsum (Split 0): F1-score = 55.9%
+DR-DSNsup trên tvsum (Split 1): F1-score = 57.0%
+DR-DSNsup trên tvsum (Split 2): F1-score = 55.5%
+DR-DSNsup trên tvsum (Split 3): F1-score = 55.5%
+DR-DSNsup trên tvsum (Split 4): F1-score = 54.6%
+DR-DSNsup trên tvsum: Trung bình F1-score = 55.70% (5/5 splits)
+
+=== Thông tin môi trường ===
+Lệnh Python sử dụng: python3
+Phiên bản Python: Python 3.8.20
+Đường dẫn Python: /home/tringooo/anaconda3/envs/ttnt/bin/python3
+Hệ điều hành: Linux LAPTOP-69GPORNV 5.15.153.1-microsoft-standard-WSL2 #1 SMP Fri Mar 29 23:14:13 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
+Thời gian kết thúc: Fri Jun  6 00:07:25 +07 2025
