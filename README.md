@@ -10,6 +10,8 @@ An advanced video summarization system powered by Deep Reinforcement Learning wi
 - [Installation and Setup](#installation-and-setup)
 - [Dataset Configuration](#dataset-configuration)
 - [Model Training](#model-training)
+- [Untrained Model Evaluation](#untrained-model-evaluation)
+- [Training vs. Untrained Performance Comparison](#training-vs-untrained-performance-comparison)
 - [Web Application](#web-application)
 - [Project Structure](#project-structure)
 - [Citation](#citation)
@@ -101,6 +103,14 @@ The repository includes pre-generated split configurations:
 
 ## Model Training
 
+### Training Pipeline Overview
+
+Training all 60 models involves running the following steps:
+
+1. Train 40 unsupervised models (DR-DSN, D-DSN, D-DSN-nolambda, R-DSN on two datasets with 5 splits each)
+2. Train 20 supervised models (DR-DSNsup, DSNsup on two datasets with 5 splits each)
+3. Evaluate both trained and untrained (randomly initialized) models for comparison
+
 ### Manual Training Examples
 
 #### Training DR-DSN on SumMe Dataset
@@ -185,12 +195,139 @@ log/DR-DSN-summe-split0/
 └── reward_curves.png       # Training visualization
 ```
 
+## Untrained Model Evaluation
+
+To establish a rigorous baseline for comparison, we evaluated 60 untrained models (with random initialization) using the same architectures, datasets, and splits as the trained models.
+
+### Why Evaluate Untrained Models?
+
+Evaluating untrained models provides:
+1. A true baseline for measuring the effectiveness of training
+2. Scientific insights into the inherent biases of model architectures
+3. A way to detect potential dataset biases or memorization issues
+4. Understanding of the role randomness plays in model performance
+
+### Automated Untrained Model Evaluation
+
+Run the untrained evaluation script for all 60 model configurations:
+
+```bash
+bash run_untrained_evaluation.sh
+```
+
+This script:
+- Evaluates all 60 untrained models with consistent random seed (default: 7)
+- Saves results in structured JSON format for easy comparison
+- Generates automatic comparison with trained models
+- Reports average performance metrics across all splits
+
+#### Customization Options
+
+```bash
+# Evaluate with custom options
+bash run_untrained_evaluation.sh --seed 42 --output "results/untrained_eval" --device 0 --verbose
+```
+
+Parameters:
+- `--seed`: Random seed for reproducibility (default: 7)
+- `--output`: Output directory for results (default: "untrained_results")
+- `--device`: GPU device ID to use (-1 for CPU, default: 0)
+- `--verbose`: Enable detailed logging (default: disabled)
+
+## Training vs. Untrained Performance Comparison
+
+Our extensive evaluation revealed surprising results: in several cases, untrained models achieved comparable or even superior performance to their trained counterparts.
+
+### Performance Comparison Table
+
+Below is a comprehensive comparison of trained vs. untrained model performance across all model architectures and datasets:
+
+```
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| Model          | Dataset   | Untrained   | Trained   | Abs. Improvement   | Rel. Improvement   |
++================+===========+=============+===========+====================+====================+
+| DR-DSN         | SUMME     | 40.6%       | 39.9%     | -0.7%              | -1.6%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| DR-DSN         | TVSUM     | 56.1%       | 56.6%     | +0.5%              | +0.9%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| D-DSN          | SUMME     | 40.8%       | 39.5%     | -1.3%              | -3.1%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| D-DSN          | TVSUM     | 56.6%       | 55.7%     | -0.9%              | -1.7%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| R-DSN          | SUMME     | 40.9%       | 38.8%     | -2.1%              | -5.1%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| R-DSN          | TVSUM     | 57.2%       | 56.6%     | -0.6%              | -1.1%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| DR-DSNsup      | SUMME     | 40.6%       | 41.9%     | +1.3%              | +3.2%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| DR-DSNsup      | TVSUM     | 55.7%       | 56.7%     | +1.0%              | +1.8%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| DSNsup         | SUMME     | 41.1%       | 39.2%     | -1.9%              | -4.6%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| DSNsup         | TVSUM     | 56.4%       | 52.3%     | -4.1%              | -7.2%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| D-DSN-nolambda | SUMME     | 39.1%       | 39.2%     | +0.1%              | +0.3%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+| D-DSN-nolambda | TVSUM     | 56.6%       | 52.3%     | -4.3%              | -7.6%              |
++----------------+-----------+-------------+-----------+--------------------+--------------------+
+```
+
+### Scientific Analysis: Why Untrained Models Can Outperform Trained Models
+
+Our findings reveal a fascinating paradox in video summarization: in 8 out of 12 configurations, untrained models achieved superior F1-scores compared to their trained counterparts. This phenomenon can be explained through several scientific perspectives:
+
+#### 1. Inductive Biases in Network Architecture
+
+The underlying neural architectures inherently incorporate strong biases that align with the video summarization task. The LSTM backbone of our models has an intrinsic capability to identify temporal patterns, while the attention mechanisms naturally focus on salient video segments—even without training. This architectural inductive bias can contribute significantly to performance.
+
+#### 2. Feature Rich Representations
+
+The input to our models are pre-extracted GoogLeNet features (pool5 layer) that already encode rich semantic information about video frames. These high-level features may contain sufficient information for the summarization task such that even random linear projections (as in untrained models) can achieve reasonable discrimination between important and unimportant frames.
+
+#### 3. Dataset Characteristics
+
+The relatively small size of video summarization datasets (SumMe: 25 videos, TVSum: 50 videos) presents challenges for deep learning:
+- Limited diversity in training examples restricts the model's ability to learn generalizable patterns
+- The subjective nature of video summarization leads to significant annotation variance
+- The datasets may not contain sufficient complexity to necessitate sophisticated learned patterns beyond what architectural biases provide
+
+#### 4. Overfitting and Regularization
+
+Trained models may overfit to specific training split characteristics, leading to decreased performance on test videos. The training objective may not perfectly align with F1-score evaluation:
+- Models optimize for reconstruction and diversity-representativeness rewards during training
+- Evaluation focuses on F1-score against human annotations
+- This objective mismatch can cause trained models to optimize for metrics that don't perfectly correlate with final evaluation criteria
+
+#### 5. Lucky Initialization and Optimization Challenges
+
+The reinforcement learning paradigm used in training introduces:
+- High variance in optimization trajectories
+- Potential for getting trapped in local optima
+- Complex reward landscapes that are difficult to navigate efficiently
+
+Sometimes, a "lucky" random initialization may position the model in a favorable region of the parameter space that training cannot improve upon or may even move away from.
+
+#### 6. Beneficial Noise in Decision-Making
+
+Random parameters can introduce beneficial noise in the selection process. In video summarization, diversity is crucial, and the stochastic nature of untrained models might inadvertently promote diversity by making less biased selections across frames.
+
+### Implications and Future Directions
+
+This phenomenon highlights important considerations for video summarization research:
+
+1. **Stronger Baselines:** Random initialization should be considered a legitimate baseline in video summarization benchmarks
+2. **Architecture Design:** Models should be evaluated on the relative improvement over their untrained versions
+3. **Training Methodologies:** Alternative training approaches like contrastive learning might better capture the essence of video summarization
+4. **Dataset Development:** Larger, more diverse datasets may be needed to truly benefit from complex model training
+
+This investigation underscores the complex interplay between model architecture, training dynamics, and dataset characteristics in the video summarization domain.
+
 ## Web Application
 
 ### Launch Streamlit Interface
 
 ```bash
-streamlit run streamlit_app.py
+streamlit run app.py
 ```
 
 Access the application via browser at: http://localhost:8501
@@ -233,10 +370,12 @@ Deep-Reinforcement-Learning-for-Unsupervised-Video-Summarization/
 ├── video/                      # Sample videos for testing
 ├── main.py                     # Core training script
 ├── models.py                   # Neural network architectures
-├── streamlit_app.py           # Web application interface
+├── app.py                      # Web application interface
 ├── run_experiments.sh         # Automated unsupervised training
 ├── run_supervised.sh          # Automated supervised training
-├── create_split.py            # Dataset split generation utili  ty
+├── run_untrained_evaluation.sh # Automated untrained model evaluation
+├── evaluate_untrained_models.py # Script for evaluating untrained models
+├── create_split.py            # Dataset split generation utility
 ├── requirements.txt           # Python dependencies
 └── README.md                  # Project documentation
 ```
